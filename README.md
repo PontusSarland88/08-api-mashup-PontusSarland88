@@ -7,3 +7,5 @@ Repo for API mashup assignment
 2. `yarn start`
 3. Tab should open for http://localhost:8080
 "# 08-api-mashup-PontusSarland88" 
+
+http://pontussarland.chas.academy/08-api-mashup/
