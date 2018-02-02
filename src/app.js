@@ -1,7 +1,6 @@
 /* Code goes here */
 import './styles/app.scss';
 
-
 class Mashed {
   constructor(element) {
     this.root = element;
@@ -10,27 +9,20 @@ class Mashed {
   
   addEventListeners() {
     const searchBtn = document.getElementById('search-button');
-    var promiseStack = [];
     searchBtn.addEventListener('click', () => {
       var search = document.getElementById('search-value');
-      // promiseStack = [
-        this.fetchFlickrPhotos(search.value),
-        this.fetchWordlabWords(search.value)
-      // ];
-      // debugger;
-      // getPromiseData(promiseStack)
-      // .then((result) => {
-      //   console.log(result); 
-      // });
-      // this.renderFlickr(flickrResponse);
-      // this.renderWorldlab(wordlabResponse);
+      this.fetchFlickrPhotos(search.value);
+      this.fetchWordlabWords(search.value);
     });
 
     const sidebarWords = document.querySelectorAll('aside ul li a');
   
       sidebarWords.forEach((sidebarWord) => {
-        sidebarWord.addEventListener('click', function() {
-          // TODO: Trigger flickr and word api fetch with Promise.all()
+        sidebarWord.addEventListener('click', () => {
+          var targetValue = event.target.innerHTML;
+          document.getElementById('search-value').value = targetValue;
+          this.fetchFlickrPhotos(targetValue);
+          this.fetchWordlabWords(targetValue);
         });
       });
   }
@@ -41,16 +33,46 @@ class Mashed {
       el.removeChild(el.firstChild);
     }
     var fragment = document.createDocumentFragment();
-    flickrResponse.photos.photo.map(element => {
+    flickrResponse.photos.photo.map(element => { 
       var liEl = document.createElement('li');
-      liEl.style.backgroundImage = `url(${element.url_m})`;
+      var aEl = document.createElement('a');
+      var imgEl = document.createElement('img');
+      aEl.href = `${element.url_m}`;
+      imgEl.src = `${element.url_m}`;
+      aEl.appendChild(imgEl);
+      liEl.appendChild(aEl);
       liEl.classList.add("result");
       fragment.appendChild(liEl);
     });
     el.appendChild(fragment);
   }
-  renderWorldlab(wordlabResponse) {
 
+  renderWorldlab(wordlabResponse) {
+    let words = Object.keys(wordlabResponse).map(key => {
+      return Object.values(wordlabResponse[key]).map(word => {
+        return word;
+      });
+    });
+
+    words = flatten(words);
+
+    var el = document.querySelector('aside ul');
+    while (el.firstChild) {
+      el.removeChild(el.firstChild);
+    }
+    var fragment = document.createDocumentFragment();
+    var maxWordCounter = 0; 
+    for (let i = 0; i < 10; i++) {
+      let liEl = document.createElement('li');
+      let link = document.createElement('a');
+      link.href = "#";
+      link.textContent = words[i];
+      liEl.appendChild(link);
+      fragment.appendChild(liEl);
+
+    }
+    el.appendChild(fragment);
+    this.addEventListeners();
   }
 
   fetchFlickrPhotos(query) {
@@ -60,7 +82,7 @@ class Mashed {
 
     let flickrQueryParams =
       '&text=' + query +
-      '&extras=url_m&format=json&nojsoncallback=1';
+      '&sort=relevance&extras=url_m&format=json&nojsoncallback=1';
     let flickrUrl = resourceUrl + flickrAPIkey + flickrQueryParams;
     
     return fetch(flickrUrl)
@@ -82,8 +104,10 @@ class Mashed {
         console.log('Got response from BigHugeLabs!');
         this.renderWorldlab(res);
       })
-      .catch(err => console.error(err));
-  }
+      .catch(function(error) {
+        alert('There has been a problem with your wordlab fetch operation, try another search');
+      }
+      )};
 }
 
 function getPromiseData(promises) {
@@ -98,6 +122,11 @@ function getPromiseData(promises) {
       })
       .catch(reject);
   });
+}
+
+function flatten(array) {
+  const flat = [].concat(...array);
+  return flat.some(Array.isArray) ? flatten(flat) : flat;
 }
 
 (function() {
