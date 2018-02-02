@@ -1,4 +1,3 @@
-/* Code goes here */
 import './styles/app.scss';
 
 class Mashed {
